@@ -1,0 +1,125 @@
+<div class="flex flex-col h-full">
+  <header class="mb-6">
+    <h2 class="text-3xl font-bold text-green-400">Collaborative Analysis</h2>
+    <p class="text-green-600 mt-1">Work with your team in real-time to analyze a compromised system.</p>
+  </header>
+
+  @if (analysisLog().length === 0) {
+    <div class="m-auto text-center">
+      <button (click)="startAnalysis()" 
+        [disabled]="isAnalyzing()"
+        class="px-12 py-6 text-xl bg-green-600 hover:bg-green-500 text-gray-900 font-bold rounded-lg transition-all duration-200 transform hover:scale-105">
+        @if (isAnalyzing()) {
+          <span><i class="fas fa-spinner fa-spin mr-2"></i>Starting...</span>
+        } @else {
+          <span><i class="fas fa-play mr-2"></i>Start Shared Analysis</span>
+        }
+      </button>
+    </div>
+  } @else {
+    <div class="grid grid-cols-12 gap-6 flex-grow min-h-0">
+
+      <!-- Participants -->
+      <div class="col-span-12 lg:col-span-2 bg-gray-800/50 border border-green-900/70 rounded-lg p-4 flex flex-col">
+        <h3 class="text-lg font-semibold text-green-300 mb-4 border-b border-green-900/50 pb-2">Participants (3)</h3>
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white">Y</div>
+                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 border-2 border-gray-800"></span>
+            </div>
+            <span class="ml-3 font-medium text-green-400">You</span>
+          </div>
+          <div class="flex items-center">
+             <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center font-bold text-white">A</div>
+                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 border-2 border-gray-800"></span>
+            </div>
+            <span class="ml-3 font-medium text-green-400">Alex</span>
+          </div>
+          <div class="flex items-center">
+             <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center font-bold text-white">B</div>
+                <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 border-2 border-gray-800"></span>
+            </div>
+            <span class="ml-3 font-medium text-green-400">Ben</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Log Viewer -->
+      <div class="col-span-12 lg:col-span-6 bg-black border border-green-900/70 rounded-lg p-4 flex flex-col min-h-[400px] lg:min-h-0">
+        <h3 class="text-lg font-semibold text-green-400 mb-2">Analysis Log: compromised_server.img</h3>
+        <pre class="flex-grow overflow-y-auto text-sm text-green-300/80 space-y-1">@for(entry of analysisLog(); track $index) {
+          <p 
+            class="whitespace-pre-wrap transition-all duration-300 p-1 rounded"
+            [class]="{
+              'text-yellow-400': entry.type === 'finding',
+              'text-red-400 font-bold': entry.type === 'alert',
+              'bg-green-900/50': currentLine() === $index
+            }">> {{entry.line}}</p>
+        }</pre>
+      </div>
+
+      <!-- Chat -->
+      <div class="col-span-12 lg:col-span-4 bg-gray-800/50 border border-green-900/70 rounded-lg p-4 flex flex-col min-h-[400px] lg:min-h-0">
+        <h3 class="text-lg font-semibold text-green-300 mb-4 border-b border-green-900/50 pb-2">Team Chat</h3>
+        <div class="flex-grow space-y-4 overflow-y-auto pr-2">
+          @for(chat of chatMessages(); track $index) {
+            <div class="flex items-start gap-2.5" [class.justify-end]="chat.isMe">
+              <div 
+                class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-white"
+                [class]="chat.isMe ? 'bg-blue-500 order-2' : chat.user === 'Alex' ? 'bg-purple-500' : 'bg-pink-500'">
+                {{ chat.avatar }}
+              </div>
+              <div class="flex flex-col max-w-xs" [class.items-end]="chat.isMe">
+                <div class="flex items-center space-x-2" [class.flex-row-reverse]="chat.isMe">
+                   <span class="text-sm font-semibold text-gray-200">{{ chat.user }}</span>
+                </div>
+                <div 
+                    class="p-2 rounded-lg"
+                    [class]="chat.isMe ? 'bg-green-700 rounded-br-none' : 'bg-gray-700 rounded-bl-none'">
+                    <p class="text-sm font-normal text-white">{{ chat.message }}</p>
+                </div>
+              </div>
+            </div>
+          }
+          @if(isAiThinking()){
+            <div class="flex items-start gap-2.5">
+              <div 
+                class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-white"
+                [class]="nextSpeaker === 'Alex' ? 'bg-purple-500' : 'bg-pink-500'">
+                {{ nextSpeaker === 'Alex' ? 'A' : 'B' }}
+              </div>
+              <div class="flex flex-col max-w-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm font-semibold text-gray-200">{{ nextSpeaker }}</span>
+                </div>
+                <div class="p-2 rounded-lg bg-gray-700 rounded-bl-none">
+                    <p class="text-sm font-normal text-white animate-pulse">typing...</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="mt-4 flex gap-2">
+          <input 
+            type="text" 
+            [(ngModel)]="myMessage"
+            (keyup.enter)="sendMessage()"
+            [disabled]="isAiThinking()"
+            placeholder="{{ isAiThinking() ? 'Waiting for response...' : 'Type your message...' }}"
+            class="flex-grow w-full bg-gray-900 border-2 border-green-700/50 focus:border-green-500 focus:ring-0 text-green-300 rounded-lg px-4 py-2 placeholder-green-700 outline-none disabled:bg-gray-800 disabled:cursor-not-allowed"
+          />
+          <button (click)="sendMessage()" [disabled]="isAiThinking() || !myMessage().trim()" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-gray-900 font-bold rounded-lg transition-all disabled:bg-gray-600 disabled:cursor-not-allowed">
+            @if(isAiThinking() && !myMessage().trim()) {
+              <i class="fas fa-spinner fa-spin"></i>
+            } @else {
+              <span>Send</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

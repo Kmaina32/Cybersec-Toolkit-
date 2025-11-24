@@ -1,0 +1,87 @@
+<div class="flex flex-col h-full">
+  <header class="mb-6">
+    <h2 class="text-3xl font-bold text-green-400">XSS Playground</h2>
+    <p class="text-green-600 mt-1">Safely test how Cross-Site Scripting payloads work in a vulnerable comment section.</p>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
+    <!-- Input Section -->
+    <div class="bg-gray-800/50 border border-green-900/70 rounded-lg p-6 flex flex-col">
+      <h3 class="text-xl font-semibold text-green-300 mb-4">Post a New Comment</h3>
+      
+      <div class="mb-4">
+        <label for="payloads" class="block text-sm font-medium text-green-400 mb-1">Example Payloads</label>
+        <div class="flex flex-wrap gap-2">
+            <button (click)="setPayload('alert')" class="text-xs px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded">Alert Popup</button>
+            <button (click)="setPayload('image')" class="text-xs px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded">Image Error</button>
+            <button (click)="setPayload('style')" class="text-xs px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded">HTML/CSS Injection</button>
+            <button (click)="setPayload('cookie')" class="text-xs px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded">Cookie Stealer (Sim)</button>
+        </div>
+      </div>
+
+      <textarea 
+        [(ngModel)]="commentInput"
+        rows="8"
+        placeholder="Enter your comment here. Try a payload like <script>alert('XSS!')</script>"
+        class="w-full bg-gray-900 border-2 border-green-700/50 focus:border-green-500 focus:ring-0 text-green-300 rounded px-4 py-2 placeholder-green-700 outline-none flex-grow"
+      ></textarea>
+      
+      <button 
+        (click)="addComment()"
+        class="mt-4 w-full px-8 py-2 bg-green-600 hover:bg-green-500 text-gray-900 font-bold rounded transition-all duration-200"
+      >
+        <i class="fas fa-comment-dots mr-2"></i>Post Comment
+      </button>
+    </div>
+
+    <!-- Output Section -->
+    <div class="bg-black/50 border border-green-900/70 rounded-lg p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-green-300">Vulnerable Blog Post Comments</h3>
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-medium" [class]="sanitizedMode() ? 'text-green-400' : 'text-gray-400'">Sanitized</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" [ngModel]="sanitizedMode()" (ngModelChange)="sanitizedMode.set($event)" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="bg-white text-gray-800 p-4 rounded-md space-y-4 font-sans flex-grow overflow-y-auto">
+            @for(comment of renderedComments(); track $index) {
+                <div class="border-b border-gray-200 pb-2 last:border-b-0">
+                    <p class="font-bold text-gray-900">{{ comment.author }} <span class="text-xs font-normal text-gray-500">- {{ comment.timestamp }}</span></p>
+                    <div class="mt-1 prose max-w-none break-words" [innerHTML]="comment.renderedContent"></div>
+                </div>
+            }
+        </div>
+
+        @if(sanitizedMode()){
+          <p class="text-xs text-green-400 mt-2 text-center"><i class="fas fa-check-circle mr-1"></i>Sanitization is ON. Malicious scripts and styles are removed.</p>
+        } @else {
+          <p class="text-xs text-yellow-400 mt-2 text-center"><i class="fas fa-exclamation-triangle mr-1"></i>Sanitization is OFF. This comment section is vulnerable and renders raw HTML.</p>
+        }
+    </div>
+  </div>
+
+  <div class="mt-6 bg-gray-800/30 border border-green-900/50 rounded-lg p-4">
+    <div class="flex flex-wrap gap-4">
+      <button (click)="showTutorial()" class="text-blue-400 hover:text-white font-bold">
+          <i class="fas fa-question-circle mr-2"></i>Show Tutorial
+      </button>
+      <button (click)="getExplanation()" class="text-green-400 hover:text-white font-bold">
+          <i class="fas fa-book-open mr-2"></i>What is Cross-Site Scripting (XSS)?
+      </button>
+    </div>
+    @if(isFetchingExplanation()){
+      <p class="mt-4 text-green-500 animate-pulse">Asking the AI expert...</p>
+    }
+    @if(explanation()){
+      <p class="mt-4 text-green-400/90 whitespace-pre-wrap">{{ explanation() }}</p>
+    }
+     @if(geminiService.error()){
+      <p class="mt-4 text-red-500">{{ geminiService.error() }}</p>
+    }
+  </div>
+
+</div>

@@ -1,0 +1,115 @@
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<div class="flex h-screen bg-gray-900 text-green-400">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-900 border-r border-green-900/50 flex-col justify-between hidden md:flex">
+    <div>
+      <div class="p-4 border-b border-green-900/50">
+        <h1 class="text-2xl font-bold tracking-widest uppercase text-green-500">
+          <i class="fas fa-user-secret mr-2"></i>CyberKit
+        </h1>
+        <p class="text-xs text-green-600">Educational Toolkit</p>
+      </div>
+      <nav class="mt-4">
+        @for (item of navItems; track item.path) {
+          <a [routerLink]="item.path" routerLinkActive="bg-green-900/30 text-green-300 border-r-4 border-green-500" class="flex items-center px-4 py-3 text-green-500 hover:bg-green-900/20 hover:text-green-300 transition-all duration-200">
+            <i class="fas {{ item.icon }} w-6 text-center"></i>
+            <span class="mx-4 font-medium">{{ item.name }}</span>
+          </a>
+        }
+      </nav>
+    </div>
+    <div class="p-4 border-t border-green-900/50 text-center text-xs text-green-700">
+      <p>For educational use only.</p>
+      <p>&copy; 2024</p>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Mobile Header -->
+    <header class="flex justify-between items-center p-4 bg-gray-900 border-b border-green-900/50 md:hidden">
+      <h1 class="text-xl font-bold text-green-500"><i class="fas fa-user-secret mr-2"></i>CyberKit</h1>
+      <button (click)="toggleMobileMenu()" class="text-green-400 focus:outline-none">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+    </header>
+
+    <!-- Mobile Menu -->
+    @if (mobileMenuOpen()) {
+      <div class="fixed inset-0 bg-gray-900/95 z-50 flex flex-col md:hidden">
+        <div class="flex justify-between items-center p-4 border-b border-green-900/50">
+          <h1 class="text-xl font-bold text-green-500"><i class="fas fa-user-secret mr-2"></i>CyberKit</h1>
+          <button (click)="toggleMobileMenu()" class="text-green-400 focus:outline-none">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        <nav class="mt-4 flex flex-col">
+          @for (item of navItems; track item.path) {
+            <a [routerLink]="item.path" (click)="closeMobileMenu()" routerLinkActive="bg-green-900/30 text-green-300" class="flex items-center px-4 py-4 text-green-500 hover:bg-green-900/20 hover:text-green-300 transition-all duration-200">
+              <i class="fas {{ item.icon }} w-6 text-center"></i>
+              <span class="mx-4 font-medium text-lg">{{ item.name }}</span>
+            </a>
+          }
+        </nav>
+        <div class="p-4 mt-auto border-t border-green-900/50 text-center text-xs text-green-700">
+          <p>For educational use only.</p>
+        </div>
+      </div>
+    }
+
+    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900/50 p-4 md:p-8" style="background-image: radial-gradient(circle at 25px 25px, rgba(0, 255, 0, 0.05) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(0, 255, 0, 0.05) 2%, transparent 0%); background-size: 100px 100px;">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+<app-tutorial></app-tutorial>
+
+<!-- Location Permission Test Modal -->
+@if (locationPermissionResult(); as result) {
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" (click)="dismissLocationPermissionModal()">
+    <div 
+      class="bg-gray-900 border-2 shadow-lg rounded-lg max-w-lg w-full m-4 flex flex-col animate-slide-up"
+      [class]="result.status === 'pass' ? 'border-green-500/50 shadow-green-500/10' : 'border-red-500/50 shadow-red-500/10'"
+      (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <header 
+        class="flex justify-between items-center p-4 border-b"
+        [class]="result.status === 'pass' ? 'border-green-900/50' : 'border-red-900/50'">
+        <h2 
+          class="text-2xl font-bold flex items-center"
+          [class]="result.status === 'pass' ? 'text-green-400' : 'text-red-400'">
+          @if (result.status === 'pass') {
+            <i class="fas fa-check-circle mr-3"></i>
+          } @else {
+            <i class="fas fa-times-circle mr-3"></i>
+          }
+          {{ result.title }}
+        </h2>
+        <button (click)="dismissLocationPermissionModal()" class="text-gray-400 hover:text-white transition-colors">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </header>
+
+      <!-- Content -->
+      <div class="p-6">
+        <p class="leading-relaxed" [class]="result.status === 'pass' ? 'text-green-300' : 'text-red-300'">{{ result.message }}</p>
+      </div>
+
+       <!-- Footer -->
+       <footer 
+         class="p-4 mt-auto border-t text-right"
+         [class]="result.status === 'pass' ? 'border-green-900/50' : 'border-red-900/50'">
+        <button 
+          (click)="dismissLocationPermissionModal()" 
+          class="px-6 py-2 text-gray-900 font-bold rounded transition-all duration-200"
+          [class]="result.status === 'pass' ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'">
+          Understood
+        </button>
+      </footer>
+
+    </div>
+  </div>
+}

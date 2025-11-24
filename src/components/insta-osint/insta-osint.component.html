@@ -1,0 +1,106 @@
+<div class="flex flex-col h-full">
+  <header class="mb-6">
+    <h2 class="text-3xl font-bold text-green-400">Instagram OSINT</h2>
+    <p class="text-green-600 mt-1">Simulate scraping a public Instagram profile for intelligence.</p>
+  </header>
+
+  <div class="bg-gray-800/50 border border-green-900/70 rounded-lg p-6">
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <div class="relative flex-grow w-full">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-green-500 font-bold">@</span>
+        <input 
+          type="text" 
+          [(ngModel)]="username"
+          placeholder="Enter username"
+          class="w-full bg-gray-900 border-2 border-green-700/50 focus:border-green-500 focus:ring-0 text-green-300 rounded px-4 py-2 pl-8 placeholder-green-700 outline-none"
+        />
+      </div>
+      <button 
+        (click)="search()" 
+        [disabled]="isLoading() || !username()"
+        [class]="isLoading() || !username() ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500'"
+        class="w-full sm:w-auto px-8 py-2 text-gray-900 font-bold rounded transition-all duration-200"
+      >
+        @if (isLoading()) {
+          <span><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</span>
+        } @else {
+          <span><i class="fas fa-search mr-2"></i>Search</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="mt-6 flex-grow flex items-center justify-center">
+      <div class="text-center">
+        <i class="fab fa-instagram text-5xl text-green-500 animate-pulse"></i>
+        <p class="mt-4 text-lg text-green-400">Scraping profile data...</p>
+      </div>
+    </div>
+  }
+
+  @if (profile(); as p) {
+    <div class="mt-6 flex-grow bg-gray-800/30 border border-green-900/50 rounded-lg p-6 animate-fade-in flex flex-col">
+      <!-- Profile Header -->
+      <div class="flex flex-col sm:flex-row items-center">
+        <img [src]="p.avatarUrl" alt="Profile Avatar" class="w-32 h-32 rounded-full border-4 border-green-800/50">
+        <div class="sm:ml-6 mt-4 sm:mt-0 text-center sm:text-left">
+          <h3 class="text-2xl font-bold text-green-300">{{ p.username }} 
+            @if(p.isPrivate) {
+              <i class="fas fa-lock text-xl text-gray-400 ml-2" title="Private Account"></i>
+            }
+          </h3>
+          <p class="text-green-500">{{ p.fullName }}</p>
+          <div class="flex justify-center sm:justify-start gap-6 mt-3 text-green-400">
+            <div><span class="font-bold text-white">{{ p.postCount }}</span> posts</div>
+            <div><span class="font-bold text-white">{{ p.followerCount }}</span> followers</div>
+            <div><span class="font-bold text-white">{{ p.followingCount }}</span> following</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bio -->
+      <p class="my-4 text-center sm:text-left text-green-300/90">{{ p.bio }}</p>
+
+      <div class="border-t border-green-900/50 pt-4 flex-grow flex flex-col min-h-0">
+        <h4 class="font-semibold text-green-400 mb-2">Recent Posts</h4>
+        @if(p.posts.length > 0) {
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 overflow-y-auto">
+                @for(post of p.posts; track $index) {
+                    <div class="aspect-square bg-gray-900 rounded-md overflow-hidden">
+                        <img [src]="post.imageUrl" alt="Post image" class="w-full h-full object-cover">
+                    </div>
+                }
+            </div>
+        } @else {
+            <div class="flex-grow flex items-center justify-center text-center bg-black/30 rounded-md">
+                <div class="text-green-700">
+                    <i class="fas fa-camera text-4xl"></i>
+                    <p class="mt-2">No posts found.</p>
+                </div>
+            </div>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="mt-6 bg-gray-800/30 border border-green-900/50 rounded-lg p-4">
+    <div class="flex flex-wrap gap-4">
+      <button (click)="showTutorial()" class="text-blue-400 hover:text-white font-bold">
+          <i class="fas fa-question-circle mr-2"></i>Show Tutorial
+      </button>
+      <button (click)="getExplanation()" class="text-green-400 hover:text-white font-bold">
+          <i class="fas fa-book-open mr-2"></i>What is Social Media OSINT?
+      </button>
+    </div>
+    @if(isFetchingExplanation()){
+      <p class="mt-4 text-green-500 animate-pulse">Asking the AI expert...</p>
+    }
+    @if(explanation()){
+      <p class="mt-4 text-green-400/90 whitespace-pre-wrap">{{ explanation() }}</p>
+    }
+    @if(geminiService.error()){
+      <p class="mt-4 text-red-500">{{ geminiService.error() }}</p>
+    }
+  </div>
+</div>

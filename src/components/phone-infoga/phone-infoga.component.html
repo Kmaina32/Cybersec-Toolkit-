@@ -1,0 +1,122 @@
+<div class="flex flex-col h-full">
+  <header class="mb-6">
+    <h2 class="text-3xl font-bold text-green-400">Phone OSINT</h2>
+    <p class="text-green-600 mt-1">Simulate gathering open-source intelligence on a phone number.</p>
+  </header>
+
+  <div class="bg-gray-800/50 border border-green-900/70 rounded-lg p-6">
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <input 
+        type="text" 
+        [(ngModel)]="phoneNumber"
+        placeholder="Enter phone number (e.g., +15550108765)"
+        class="flex-grow w-full bg-gray-900 border-2 border-green-700/50 focus:border-green-500 focus:ring-0 text-green-300 rounded px-4 py-2 placeholder-green-700 outline-none"
+      />
+      <button 
+        (click)="scan()" 
+        [disabled]="isScanning()"
+        [class]="isScanning() ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500'"
+        class="w-full sm:w-auto px-8 py-2 text-gray-900 font-bold rounded transition-all duration-200"
+      >
+        @if (isScanning()) {
+          <span><i class="fas fa-spinner fa-spin mr-2"></i>Scanning...</span>
+        } @else {
+          <span><i class="fas fa-search mr-2"></i>Scan</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (isScanning() || scanLog().length > 0) {
+    <div class="mt-6 flex-grow bg-black border border-green-900/70 rounded-lg p-4 flex flex-col min-h-[300px]">
+      <h3 class="text-xl font-semibold text-green-400 mb-2">Scan Log</h3>
+      <pre class="flex-grow overflow-y-auto text-sm text-green-300/80 space-y-1">@for(line of scanLog(); track $index){
+        @if(line.startsWith('[!]')){
+            <p class="whitespace-pre-wrap text-red-400 font-bold">> {{line}}</p>
+        } @else if(line.startsWith('[*]')){
+            <p class="whitespace-pre-wrap text-yellow-400">> {{line}}</p>
+        } @else {
+            <p class="whitespace-pre-wrap">> {{line}}</p>
+        }
+      }</pre>
+    </div>
+  }
+
+  @if (scanComplete() && scanResult(); as result) {
+    <div class="mt-6 flex-grow bg-black border border-green-900/70 rounded-lg p-6 animate-fade-in">
+      <h3 class="text-2xl font-bold text-green-300 mb-4">Intelligence Report</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-800/40 p-4 rounded-lg">
+          <h4 class="font-semibold text-green-400 mb-2">Basic Information</h4>
+          <dl class="text-sm">
+            <div class="flex justify-between py-1 border-b border-green-900/30">
+              <dt class="text-green-500">Number:</dt>
+              <dd class="font-mono text-green-300">{{ result.number }}</dd>
+            </div>
+            <div class="flex justify-between py-1 border-b border-green-900/30">
+              <dt class="text-green-500">Country:</dt>
+              <dd class="text-green-300">{{ result.country }}</dd>
+            </div>
+            <div class="flex justify-between py-1 border-b border-green-900/30">
+              <dt class="text-green-500">Carrier:</dt>
+              <dd class="text-green-300">{{ result.carrier }}</dd>
+            </div>
+            <div class="flex justify-between py-1">
+              <dt class="text-green-500">Line Type:</dt>
+              <dd class="text-green-300">{{ result.lineType }}</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="bg-gray-800/40 p-4 rounded-lg">
+          <h4 class="font-semibold text-green-400 mb-2">Digital Footprint</h4>
+           <div class="mb-4">
+              <p class="text-green-500 text-sm">Spam/Reputation Score:</p>
+              <div class="w-full bg-gray-700 rounded-full h-4 mt-1 relative overflow-hidden border border-green-800">
+                <div class="bg-green-500 h-full rounded-full" [style.width.%]="result.reputation.score"></div>
+                 <span class="absolute w-full h-full top-0 left-0 text-center text-xs text-white font-bold leading-4">{{result.reputation.score}} / 100</span>
+              </div>
+              <p class="text-xs text-gray-500 text-right">Provider: {{result.reputation.provider}}</p>
+           </div>
+           <div>
+              <p class="text-green-500 text-sm">Associated Social Profiles:</p>
+              @if(result.socials.length > 0) {
+                <div class="flex gap-2 mt-2">
+                    @for(social of result.socials; track social) {
+                        <span class="px-3 py-1 text-xs font-medium bg-green-900/70 text-green-300 rounded-full">{{social}}</span>
+                    }
+                </div>
+              } @else {
+                <p class="text-sm text-gray-500 italic mt-1">No public profiles found.</p>
+              }
+           </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="mt-6 p-4 bg-red-900/50 border border-red-500/70 text-red-300 text-sm rounded-lg">
+        <p><i class="fas fa-exclamation-circle mr-2"></i><strong>Error:</strong> {{ error() }}</p>
+    </div>
+  }
+
+  <div class="mt-6 bg-gray-800/30 border border-green-900/50 rounded-lg p-4">
+    <div class="flex flex-wrap gap-4">
+      <button (click)="showTutorial()" class="text-blue-400 hover:text-white font-bold">
+          <i class="fas fa-question-circle mr-2"></i>Show Tutorial
+      </button>
+      <button (click)="getExplanation()" class="text-green-400 hover:text-white font-bold">
+          <i class="fas fa-book-open mr-2"></i>What is Phone OSINT?
+      </button>
+    </div>
+    @if(isFetchingExplanation()){
+      <p class="mt-4 text-green-500 animate-pulse">Asking the AI expert...</p>
+    }
+    @if(explanation()){
+      <p class="mt-4 text-green-400/90 whitespace-pre-wrap">{{ explanation() }}</p>
+    }
+    @if(geminiService.error()){
+      <p class="mt-4 text-red-500">{{ geminiService.error() }}</p>
+    }
+  </div>
+</div>

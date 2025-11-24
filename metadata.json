@@ -1,0 +1,5 @@
+{
+  "name": "CyberSec Student Toolkit",
+  "description": "An educational application designed for cybersecurity students to safely practice and understand common web vulnerabilities in a simulated environment on their own projects.",
+  "requestFramePermissions": []
+}

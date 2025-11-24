@@ -1,0 +1,75 @@
+<div class="flex flex-col h-full">
+  <header class="mb-6">
+    <h2 class="text-3xl font-bold text-green-400">Deception Technology</h2>
+    <p class="text-green-600 mt-1">Deploy a simulated honeypot to attract and observe attackers' behavior.</p>
+  </header>
+
+  <div class="bg-gray-800/50 border border-green-900/70 rounded-lg p-6 flex flex-col sm:flex-row justify-between items-center">
+    <div>
+        <h3 class="text-xl font-semibold text-green-300">Honeypot Control</h3>
+        <p class="text-sm text-green-500">Activate the decoy server to begin logging suspicious activity.</p>
+    </div>
+    
+    <button 
+      (click)="toggleHoneypot()" 
+      [class]="isHoneypotActive() ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'"
+      class="w-full sm:w-auto mt-4 sm:mt-0 px-8 py-2 text-gray-900 font-bold rounded transition-all duration-200"
+    >
+      @if (isHoneypotActive()) {
+        <span><i class="fas fa-shield-alt mr-2"></i>Deactivate Honeypot</span>
+      } @else {
+        <span><i class="fas fa-ghost mr-2"></i>Deploy Honeypot</span>
+      }
+    </button>
+  </div>
+
+  <div class="mt-6 flex-grow bg-black border border-green-900/70 rounded-lg p-4 flex flex-col min-h-[300px]">
+    <div class="flex items-center mb-2">
+        <h3 class="text-xl font-semibold text-green-400">Live Activity Log</h3>
+        @if(isHoneypotActive()){
+            <span class="ml-4 flex items-center text-xs font-bold text-green-400 bg-green-900/50 px-2 py-1 rounded-full">
+                <span class="relative flex h-2 w-2 mr-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                ACTIVE
+            </span>
+        } @else {
+             <span class="ml-4 flex items-center text-xs font-bold text-gray-400 bg-gray-700/50 px-2 py-1 rounded-full">
+                <span class="relative flex h-2 w-2 mr-2">
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-gray-500"></span>
+                </span>
+                INACTIVE
+            </span>
+        }
+    </div>
+    <pre class="flex-grow overflow-y-auto text-sm text-green-300/80 space-y-1">@for(log of honeypotLog(); track $index){<p class="whitespace-pre-wrap"><span class="text-gray-500">{{ log.timestamp }}</span> - <span class="text-yellow-400 font-semibold">{{ log.ip }}</span> - <span class="text-green-300">{{ log.activity }}</span></p>}</pre>
+    @if(honeypotLog().length === 0){
+        <div class="m-auto text-center text-green-700">
+            <i class="fas fa-eye-slash text-4xl"></i>
+            <p class="mt-2">Deploy the honeypot to see activity.</p>
+        </div>
+    }
+  </div>
+  
+  <div class="mt-6 bg-gray-800/30 border border-green-900/50 rounded-lg p-4">
+    <div class="flex flex-wrap gap-4">
+      <button (click)="showTutorial()" class="text-blue-400 hover:text-white font-bold">
+          <i class="fas fa-question-circle mr-2"></i>Show Tutorial
+      </button>
+      <button (click)="getExplanation()" class="text-green-400 hover:text-white font-bold">
+          <i class="fas fa-book-open mr-2"></i>What is Deception Technology?
+      </button>
+    </div>
+    @if(isFetchingExplanation()){
+      <p class="mt-4 text-green-500 animate-pulse">Asking the AI expert...</p>
+    }
+    @if(explanation()){
+      <p class="mt-4 text-green-400/90 whitespace-pre-wrap">{{ explanation() }}</p>
+    }
+     @if(geminiService.error()){
+      <p class="mt-4 text-red-500">{{ geminiService.error() }}</p>
+    }
+  </div>
+
+</div>
